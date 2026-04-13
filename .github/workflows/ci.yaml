@@ -5,6 +5,12 @@ on:
     branches: [dev]
   pull_request:
     branches: [dev]
+  workflow_dispatch:
+    inputs:
+      run_acceptance_tests:
+        description: 'Run acceptance tests (requires LocalNet VM)'
+        type: boolean
+        default: false
 
 jobs:
   build-and-test:
@@ -40,3 +46,107 @@ jobs:
         uses: golangci/golangci-lint-action@v9
         with:
           version: latest
+
+  check-vm:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 2
+    environment: LocalNet
+    if: ${{ inputs.run_acceptance_tests || vars.LOCALNET_ENABLED == 'true' }}
+    outputs:
+      reachable: ${{ steps.vm_check.outputs.reachable }}
+
+    steps:
+      - name: Setup SSH key
+        env:
+          SSH_KEY: ${{ secrets.LOCALNET_SSH_KEY }}
+          LOCALNET_KNOWN_HOST: ${{ secrets.LOCALNET_KNOWN_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/localnet_key
+          chmod 600 ~/.ssh/localnet_key
+          printf '%s\n' "$LOCALNET_KNOWN_HOST" >> ~/.ssh/known_hosts
+
+      - name: Check VM reachability
+        id: vm_check
+        continue-on-error: true
+        env:
+          LOCALNET_HOST: ${{ secrets.LOCALNET_HOST }}
+        run: |
+          if ssh -i ~/.ssh/localnet_key \
+            -o ConnectTimeout=10 \
+            -o BatchMode=yes \
+            ubuntu@"$LOCALNET_HOST" echo "reachable"; then
+            echo "reachable=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "reachable=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Notice if unreachable
+        if: steps.vm_check.outputs.reachable != 'true'
+        run: echo "::notice::LocalNet VM is not reachable — acceptance tests will be skipped"
+
+  acceptance-test:
+    needs: check-vm
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    environment: LocalNet
+    if: needs.check-vm.outputs.reachable == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Setup SSH key
+        env:
+          SSH_KEY: ${{ secrets.LOCALNET_SSH_KEY }}
+          LOCALNET_KNOWN_HOST: ${{ secrets.LOCALNET_KNOWN_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/localnet_key
+          chmod 600 ~/.ssh/localnet_key
+          printf '%s\n' "$LOCALNET_KNOWN_HOST" >> ~/.ssh/known_hosts
+
+      - name: Open SSH tunnel to LocalNet
+        env:
+          LOCALNET_HOST: ${{ secrets.LOCALNET_HOST }}
+        run: |
+          ssh -fN \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=3 \
+            -o ExitOnForwardFailure=yes \
+            -L 3901:localhost:3901 \
+            -L 8082:localhost:8082 \
+            -i ~/.ssh/localnet_key \
+            ubuntu@"$LOCALNET_HOST"
+
+          # Verify tunnel is working — poll the Keycloak OIDC endpoint
+          for i in $(seq 1 10); do
+            if curl -sf http://localhost:8082/realms/AppProvider/.well-known/openid-configuration > /dev/null 2>&1; then
+              echo "LocalNet is reachable via tunnel"
+              exit 0
+            fi
+            echo "Waiting for tunnel... ($i/10)"
+            sleep 3
+          done
+          echo "::error::Failed to reach LocalNet through SSH tunnel"
+          exit 1
+
+      - name: Run acceptance tests
+        env:
+          TF_ACC: "1"
+          CANTON_PARTICIPANT_URL: "localhost:3901"
+          CANTON_OAUTH2_TOKEN_URL: "http://localhost:8082/realms/AppProvider/protocol/openid-connect/token"
+          CANTON_OAUTH2_CLIENT_ID: ${{ vars.CANTON_OAUTH2_CLIENT_ID }}
+          CANTON_OAUTH2_CLIENT_SECRET: ${{ secrets.CANTON_OAUTH2_CLIENT_SECRET }}
+          CANTON_OAUTH2_AUDIENCE: ${{ vars.CANTON_OAUTH2_AUDIENCE }}
+        run: go test -v ./internal/provider/ -run TestAcc -timeout 120s

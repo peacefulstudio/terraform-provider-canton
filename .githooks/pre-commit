@@ -8,6 +8,14 @@ export PATH="${go_path_root}/bin:$PATH"
 
 echo "Running pre-commit checks..."
 
+# Auto-format staged Go files and re-stage them.
+echo "  Formatting..."
+staged_go_files=$(git diff --cached --name-only --diff-filter=ACM -- '*.go')
+if [ -n "$staged_go_files" ]; then
+    echo "$staged_go_files" | xargs gofmt -w
+    echo "$staged_go_files" | xargs git add
+fi
+
 # Lint (goimports + gofmt + static analysis via golangci-lint)
 echo "  Linting..."
 if command -v golangci-lint &> /dev/null; then

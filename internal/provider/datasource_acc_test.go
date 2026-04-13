@@ -3,11 +3,15 @@
 package provider
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func TestAccPartyDataSource_basic(t *testing.T) {
@@ -44,10 +48,25 @@ data "canton_party" "test" {
 func TestAccUserDataSource_basic(t *testing.T) {
 	t.Parallel()
 	suffix := acctest.RandStringFromCharSet(8, acctest.CharSetAlphaNum)
+	userID := "acc-ds-user-" + suffix
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		CheckDestroy: func(s *terraform.State) error {
+			client, err := testAccCantonClient()
+			if err != nil {
+				return err
+			}
+			_, err = client.UserMng.GetUser(context.Background(), userID)
+			if err == nil {
+				return fmt.Errorf("user %s still exists after destroy", userID)
+			}
+			if status.Code(err) != codes.NotFound {
+				return fmt.Errorf("unexpected error checking user after destroy: %s", err)
+			}
+			return nil
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(`

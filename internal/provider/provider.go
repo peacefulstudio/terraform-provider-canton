@@ -226,7 +226,11 @@ func (p *cantonProvider) Resources(_ context.Context) []func() resource.Resource
 }
 
 func (p *cantonProvider) DataSources(_ context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{}
+	return []func() datasource.DataSource{
+		NewPartyDataSource,
+		NewUserDataSource,
+		NewPartiesDataSource,
+	}
 }
 
 func stringValueOrEnv(value types.String, envVar string) string {

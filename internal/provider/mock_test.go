@@ -15,6 +15,7 @@ type mockPartyManagement struct {
 	AllocatePartyFn    func(ctx context.Context, partyIDHint string, localMetadata map[string]string, identityProviderID string) (*model.PartyDetails, error)
 	GetPartiesFn       func(ctx context.Context, parties []string, identityProviderID string) ([]*model.PartyDetails, error)
 	GetParticipantIDFn func(ctx context.Context) (string, error)
+	ListKnownPartiesFn func(ctx context.Context, pageToken string, pageSize int32, identityProviderID string) (*model.ListKnownPartiesResponse, error)
 }
 
 func (m *mockPartyManagement) AllocateParty(ctx context.Context, partyIDHint string, localMetadata map[string]string, identityProviderID string) (*model.PartyDetails, error) {
@@ -42,8 +43,11 @@ func (m *mockPartyManagement) GetParticipantID(ctx context.Context) (string, err
 	return "participant-1", nil
 }
 
-func (m *mockPartyManagement) ListKnownParties(_ context.Context, _ string, _ int32, _ string) (*model.ListKnownPartiesResponse, error) {
-	return &model.ListKnownPartiesResponse{}, nil
+func (m *mockPartyManagement) ListKnownParties(ctx context.Context, pageToken string, pageSize int32, identityProviderID string) (*model.ListKnownPartiesResponse, error) {
+	if m.ListKnownPartiesFn == nil {
+		panic("mockPartyManagement.ListKnownPartiesFn not set but ListKnownParties was called")
+	}
+	return m.ListKnownPartiesFn(ctx, pageToken, pageSize, identityProviderID)
 }
 
 func (m *mockPartyManagement) AllocateExternalParty(_ context.Context, _ string, _ []model.SignedTransaction, _ []model.Signature, _ string) (string, error) {
@@ -68,6 +72,7 @@ type mockUserManagement struct {
 	GrantUserRightsFn  func(ctx context.Context, userID, identityProviderID string, rights []*model.Right) ([]*model.Right, error)
 	RevokeUserRightsFn func(ctx context.Context, userID string, rights []*model.Right) ([]*model.Right, error)
 	ListUserRightsFn   func(ctx context.Context, userID string) ([]*model.Right, error)
+	ListUsersFn        func(ctx context.Context) ([]*model.User, error)
 }
 
 func (m *mockUserManagement) CreateUser(ctx context.Context, user *model.User, rights []*model.Right) (*model.User, error) {
@@ -112,6 +117,9 @@ func (m *mockUserManagement) ListUserRights(ctx context.Context, userID string) 
 	return m.ListUserRightsFn(ctx, userID)
 }
 
-func (m *mockUserManagement) ListUsers(_ context.Context) ([]*model.User, error) {
-	return nil, nil
+func (m *mockUserManagement) ListUsers(ctx context.Context) ([]*model.User, error) {
+	if m.ListUsersFn == nil {
+		panic("mockUserManagement.ListUsersFn not set but ListUsers was called")
+	}
+	return m.ListUsersFn(ctx)
 }

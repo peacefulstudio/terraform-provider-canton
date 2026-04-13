@@ -12,7 +12,10 @@ terraform-provider-canton/
 │       ├── provider.go                  # Provider config (endpoint, OAuth2)
 │       ├── resource_party.go            # canton_party resource
 │       ├── resource_user.go             # canton_user resource
-│       └── resource_user_rights.go      # canton_user_rights resource
+│       ├── resource_user_rights.go      # canton_user_rights resource
+│       ├── datasource_party.go          # canton_party data source
+│       ├── datasource_user.go           # canton_user data source
+│       └── datasource_parties.go        # canton_parties data source
 ├── go.mod
 └── go.sum
 ```
@@ -54,7 +57,7 @@ provider "canton" {
 }
 ```
 
-Environment variable fallbacks: `CANTON_PARTICIPANT_URL`, `CANTON_OAUTH2_TOKEN_URL`, `CANTON_OAUTH2_CLIENT_ID`, `CANTON_OAUTH2_CLIENT_SECRET`, `CANTON_OAUTH2_AUDIENCE`.
+Environment variable fallbacks: `CANTON_PARTICIPANT_URL`, `CANTON_OAUTH2_TOKEN_URL`, `CANTON_OAUTH2_CLIENT_ID`, `CANTON_OAUTH2_CLIENT_SECRET`, `CANTON_OAUTH2_AUDIENCE`, `CANTON_OAUTH2_SCOPE`.
 
 ## Resources
 
@@ -63,6 +66,14 @@ Environment variable fallbacks: `CANTON_PARTICIPANT_URL`, `CANTON_OAUTH2_TOKEN_U
 | `canton_party` | Allocates a party on the participant (delete = no-op) |
 | `canton_user` | Creates/deletes a user on the participant |
 | `canton_user_rights` | Grants/revokes user rights (in-place updates) |
+
+## Data Sources
+
+| Data Source | Description |
+|-------------|-------------|
+| `canton_party` | Looks up an existing party by ID |
+| `canton_user` | Looks up an existing user by ID |
+| `canton_parties` | Lists all known parties on the participant |
 
 ## Testing
 

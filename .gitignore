@@ -20,3 +20,4 @@ coverage.out
 # IDE
 .idea/
 .vscode/
+internal/.DS_Store

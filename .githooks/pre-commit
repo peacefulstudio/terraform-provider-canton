@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Ensure ~/go/bin is in PATH for tools installed via `go install`.
+go_path_root="${GOPATH:-$HOME/go}"
+go_path_root="${go_path_root%%:*}"
+export PATH="${go_path_root}/bin:$PATH"
+
+echo "Running pre-commit checks..."
+
+# Lint (goimports + gofmt + static analysis via golangci-lint)
+echo "  Linting..."
+if command -v golangci-lint &> /dev/null; then
+    golangci-lint run ./...
+else
+    echo "  golangci-lint not found, falling back to go vet"
+    go vet ./...
+fi
+
+echo "  Building..."
+go build ./...
+
+echo "  Testing..."
+go test -count=1 -race ./...
+
+echo "All pre-commit checks passed."

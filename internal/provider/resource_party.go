@@ -112,6 +112,14 @@ func (r *partyResource) Create(ctx context.Context, req resource.CreateRequest, 
 		return
 	}
 
+	if party == nil {
+		resp.Diagnostics.AddError(
+			"Error allocating party",
+			"AllocateParty returned no error but a nil party for hint "+hint+". This is unexpected behavior from the participant.",
+		)
+		return
+	}
+
 	plan.PartyID = types.StringValue(party.Party)
 	plan.IsLocal = types.BoolValue(party.IsLocal)
 

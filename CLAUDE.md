@@ -31,6 +31,14 @@ go run .                  # Run the provider
 go run . -debug           # Run with debugger support (delve)
 ```
 
+### Git Hooks
+
+The repo uses a pre-commit hook (lint + build + test) in `.githooks/`. Activate it after cloning:
+
+```bash
+git config core.hooksPath .githooks
+```
+
 ## Provider Configuration
 
 ```hcl
@@ -55,6 +63,33 @@ Environment variable fallbacks: `CANTON_PARTICIPANT_URL`, `CANTON_OAUTH2_TOKEN_U
 | `canton_party` | Allocates a party on the participant (delete = no-op) |
 | `canton_user` | Creates/deletes a user on the participant |
 | `canton_user_rights` | Grants/revokes user rights (in-place updates) |
+
+## Testing
+
+### Red-Green TDD (mandatory for new features)
+
+All new features and bug fixes must follow red-green TDD:
+
+1. **Red** — Write a failing test that describes the desired behavior
+2. **Green** — Write the minimum production code to make the test pass
+3. **Refactor** — Clean up while keeping tests green
+
+### Test Architecture
+
+- Unit tests live alongside source files: `resource_party_test.go` next to `resource_party.go`
+- Mock implementations of go-daml interfaces are in `mock_test.go`
+- Test helpers for constructing Terraform framework objects are in `testhelper_test.go`
+- Resource CRUD methods are tested by injecting mock services and constructing `tfsdk.Plan`/`tfsdk.State` from `tftypes.Value`
+- `provider.Configure` is not unit-tested (requires real OAuth2/gRPC) — to be covered by integration tests
+
+### Running Tests
+
+```bash
+go test ./...                                    # Run all tests
+go test -v -race -coverprofile=coverage.out ./...  # With race detection + coverage
+go tool cover -func=coverage.out                 # Coverage report by function
+go tool cover -html=coverage.out                 # HTML coverage report
+```
 
 ## Code Style
 

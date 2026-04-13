@@ -40,7 +40,13 @@ type userRightsResourceModel struct {
 	IdentityProviderAdmin types.Bool   `tfsdk:"identity_provider_admin"`
 }
 
-var emptyStringSet, _ = types.SetValueFrom(context.Background(), types.StringType, []string{})
+var emptyStringSet = func() types.Set {
+	s, diags := types.SetValueFrom(context.Background(), types.StringType, []string{})
+	if diags.HasError() {
+		panic("failed to create empty string set for schema defaults: " + diags.Errors()[0].Detail())
+	}
+	return s
+}()
 
 func NewUserRightsResource() resource.Resource {
 	return &userRightsResource{}
@@ -199,6 +205,9 @@ func (r *userRightsResource) Update(ctx context.Context, req resource.UpdateRequ
 	userID := plan.UserID.ValueString()
 
 	desiredRights := modelToRights(ctx, plan, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	currentRights := modelToRights(ctx, state, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
@@ -340,7 +349,7 @@ func (r *userRightsResource) ImportState(ctx context.Context, req resource.Impor
 }
 
 // modelToRights converts the Terraform resource model to a slice of go-daml Rights.
-// Returns nil if no rights are configured.
+// Returns nil if no rights are configured or if a diagnostic error occurs.
 func modelToRights(ctx context.Context, m userRightsResourceModel, diags *diag.Diagnostics) []*model.Right {
 	var rights []*model.Right
 
@@ -379,8 +388,8 @@ func modelToRights(ctx context.Context, m userRightsResourceModel, diags *diag.D
 
 // rightsToModel converts a slice of go-daml Rights to the Terraform resource model.
 func rightsToModel(ctx context.Context, rights []*model.Right, m *userRightsResourceModel, diags *diag.Diagnostics) {
-	var actAs []string
-	var readAs []string
+	actAs := make([]string, 0)
+	readAs := make([]string, 0)
 	participantAdmin := false
 	idpAdmin := false
 

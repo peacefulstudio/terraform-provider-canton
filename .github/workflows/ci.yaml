@@ -27,6 +27,15 @@ jobs:
       - name: Test
         run: go test -v -race -coverprofile=coverage.out ./...
 
+      - name: Coverage report
+        run: go tool cover -func=coverage.out | tail -1
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe # v5.5.4
+        with:
+          files: coverage.out
+          fail_ci_if_error: false
+
       - name: Lint
         uses: golangci/golangci-lint-action@v9
         with:

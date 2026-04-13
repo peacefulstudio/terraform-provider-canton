@@ -1,0 +1,33 @@
+---
+page_title: "Canton Provider"
+subcategory: ""
+description: |-
+  Terraform provider for Canton participant node administration — manage parties, users, and rights declaratively.
+---
+
+# Canton Provider
+
+The Canton provider manages resources on a [Canton](https://www.canton.io/) participant node via the participant admin gRPC services. It supports:
+
+- **Parties** — allocate and look up parties
+- **Users** — create and delete users
+- **User rights** — grant, revoke, and update rights (act-as, read-as, admin roles)
+
+## Authentication
+
+The provider connects to a Canton participant's gRPC endpoint. If the participant requires OAuth2 authentication, configure the `oauth2` block or set the corresponding environment variables.
+
+| HCL Attribute | Environment Variable |
+|---------------|---------------------|
+| `participant_url` | `CANTON_PARTICIPANT_URL` |
+| `oauth2.token_url` | `CANTON_OAUTH2_TOKEN_URL` |
+| `oauth2.client_id` | `CANTON_OAUTH2_CLIENT_ID` |
+| `oauth2.client_secret` | `CANTON_OAUTH2_CLIENT_SECRET` |
+| `oauth2.audience` | `CANTON_OAUTH2_AUDIENCE` |
+| `oauth2.scope` | `CANTON_OAUTH2_SCOPE` |
+
+## Example Usage
+
+{{ tffile "examples/provider/provider.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}

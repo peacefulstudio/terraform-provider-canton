@@ -1,0 +1,28 @@
+---
+page_title: "canton_party Resource - canton"
+subcategory: ""
+description: |-
+  Allocates a party on a Canton participant node.
+---
+
+# canton_party (Resource)
+
+Allocates a party on a Canton participant node.
+
+~> **Note:** Canton parties cannot be deleted from the ledger. Running `terraform destroy` removes the party from Terraform state only — the party remains on the participant.
+
+## Example Usage
+
+{{ tffile "examples/resources/canton_party/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Parties can be imported by their full party ID:
+
+```shell
+terraform import canton_party.validator "validator::1234567890"
+```
+
+After import, `party_id_hint` is set to the full party ID since the original hint cannot be recovered.

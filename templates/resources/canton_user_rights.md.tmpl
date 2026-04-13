@@ -1,0 +1,24 @@
+---
+page_title: "canton_user_rights Resource - canton"
+subcategory: ""
+description: |-
+  Manages rights granted to a user on a Canton participant node.
+---
+
+# canton_user_rights (Resource)
+
+Manages rights granted to a user on a Canton participant node. Rights can be updated in-place — the provider computes the diff and grants/revokes only the changed rights.
+
+## Example Usage
+
+{{ tffile "examples/resources/canton_user_rights/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+User rights can be imported by user ID:
+
+```shell
+terraform import canton_user_rights.treasury_rights treasury-service
+```

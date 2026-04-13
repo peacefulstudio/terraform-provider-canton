@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	rschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -78,6 +80,98 @@ func getResourceSchema(r resource.Resource) rschema.Schema {
 	schemaResp := &resource.SchemaResponse{}
 	r.Schema(context.Background(), resource.SchemaRequest{}, schemaResp)
 	return schemaResp.Schema
+}
+
+// dsSchemaToTftype converts a datasource schema to a tftypes.Object.
+func dsSchemaToTftype(s dschema.Schema) tftypes.Object {
+	attrTypes := map[string]tftypes.Type{}
+	for name, attr := range s.Attributes {
+		attrTypes[name] = dsAttrFrameworkToTf(attr)
+	}
+	for name, block := range s.Blocks {
+		attrTypes[name] = dsBlockToTf(block)
+	}
+	return tftypes.Object{AttributeTypes: attrTypes}
+}
+
+func dsAttrFrameworkToTf(attr dschema.Attribute) tftypes.Type {
+	switch a := attr.(type) {
+	case dschema.StringAttribute:
+		return tftypes.String
+	case dschema.BoolAttribute:
+		return tftypes.Bool
+	case dschema.SetAttribute:
+		return tftypes.Set{ElementType: elemType(a.ElementType)}
+	case dschema.ListNestedAttribute:
+		nested := map[string]tftypes.Type{}
+		for n, na := range a.NestedObject.Attributes {
+			nested[n] = dsAttrFrameworkToTf(na)
+		}
+		return tftypes.List{ElementType: tftypes.Object{AttributeTypes: nested}}
+	default:
+		panic(fmt.Sprintf("dsAttrFrameworkToTf: unsupported attribute type %T — update test helper", attr))
+	}
+}
+
+func dsBlockToTf(block dschema.Block) tftypes.Type {
+	switch b := block.(type) {
+	case dschema.ListNestedBlock:
+		nested := map[string]tftypes.Type{}
+		for n, a := range b.NestedObject.Attributes {
+			nested[n] = dsAttrFrameworkToTf(a)
+		}
+		return tftypes.List{ElementType: tftypes.Object{AttributeTypes: nested}}
+	default:
+		panic(fmt.Sprintf("dsBlockToTf: unsupported block type %T — update test helper", block))
+	}
+}
+
+// newTestDSConfig creates a tfsdk.Config from a datasource schema and a tftypes.Value.
+func newTestDSConfig(s dschema.Schema, val tftypes.Value) tfsdk.Config {
+	return tfsdk.Config{
+		Schema: s,
+		Raw:    val,
+	}
+}
+
+// getDatasourceSchema calls Schema on the datasource and returns the schema.
+func getDatasourceSchema(ds datasource.DataSource) dschema.Schema {
+	schemaResp := &datasource.SchemaResponse{}
+	ds.Schema(context.Background(), datasource.SchemaRequest{}, schemaResp)
+	return schemaResp.Schema
+}
+
+// emptyDSState creates an empty tfsdk.State (no resource) from a datasource schema.
+func emptyDSState(s dschema.Schema) tfsdk.State {
+	return tfsdk.State{
+		Schema: s,
+		Raw:    tftypes.NewValue(dsSchemaToTftype(s), nil),
+	}
+}
+
+// emptyDSConfigValue creates a tftypes.Value with all attributes set to nil for a datasource schema.
+func emptyDSConfigValue(s dschema.Schema) tftypes.Value {
+	objType := dsSchemaToTftype(s)
+	vals := map[string]tftypes.Value{}
+	for name, attrType := range objType.AttributeTypes {
+		vals[name] = tftypes.NewValue(attrType, nil)
+	}
+	return tftypes.NewValue(objType, vals)
+}
+
+// tftypesObjectValue creates a tftypes.Value from a type and a map of attribute values.
+// nil values in the map produce tftypes null values.
+func tftypesObjectValue(objType tftypes.Object, vals map[string]interface{}) tftypes.Value {
+	tfVals := map[string]tftypes.Value{}
+	for name, attrType := range objType.AttributeTypes {
+		v, ok := vals[name]
+		if !ok || v == nil {
+			tfVals[name] = tftypes.NewValue(attrType, nil)
+		} else {
+			tfVals[name] = tftypes.NewValue(attrType, v)
+		}
+	}
+	return tftypes.NewValue(objType, tfVals)
 }
 
 // getState reads the resource model from state, failing the test if diagnostics contain errors.

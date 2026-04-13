@@ -6,6 +6,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -71,8 +72,45 @@ func TestProviderDataSources(t *testing.T) {
 	p := &cantonProvider{}
 	dataSources := p.DataSources(context.Background())
 
-	if len(dataSources) != 0 {
-		t.Errorf("expected 0 data sources, got %d", len(dataSources))
+	if len(dataSources) != 3 {
+		t.Fatalf("expected 3 data source factories, got %d", len(dataSources))
+	}
+
+	for i, factory := range dataSources {
+		ds := factory()
+		if ds == nil {
+			t.Errorf("data source factory %d returned nil", i)
+		}
+	}
+}
+
+func TestProviderDataSources_TypeNames(t *testing.T) {
+	p := &cantonProvider{}
+	dataSources := p.DataSources(context.Background())
+
+	expectedTypes := map[string]bool{
+		"canton_party":   false,
+		"canton_user":    false,
+		"canton_parties": false,
+	}
+
+	for _, factory := range dataSources {
+		ds := factory()
+		metaResp := &datasource.MetadataResponse{}
+		ds.Metadata(context.Background(), datasource.MetadataRequest{ProviderTypeName: "canton"}, metaResp)
+		if _, ok := expectedTypes[metaResp.TypeName]; !ok {
+			t.Errorf("unexpected data source type: %s", metaResp.TypeName)
+		}
+		if expectedTypes[metaResp.TypeName] {
+			t.Errorf("duplicate data source type: %s", metaResp.TypeName)
+		}
+		expectedTypes[metaResp.TypeName] = true
+	}
+
+	for name, found := range expectedTypes {
+		if !found {
+			t.Errorf("expected data source type %s not found", name)
+		}
 	}
 }
 
@@ -92,6 +130,9 @@ func TestProviderResources_TypeNames(t *testing.T) {
 		r.Metadata(context.Background(), resource.MetadataRequest{ProviderTypeName: "canton"}, metaResp)
 		if _, ok := expectedTypes[metaResp.TypeName]; !ok {
 			t.Errorf("unexpected resource type: %s", metaResp.TypeName)
+		}
+		if expectedTypes[metaResp.TypeName] {
+			t.Errorf("duplicate resource type: %s", metaResp.TypeName)
 		}
 		expectedTypes[metaResp.TypeName] = true
 	}

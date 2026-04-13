@@ -1,0 +1,24 @@
+---
+page_title: "canton_user Resource - canton"
+subcategory: ""
+description: |-
+  Manages a user on a Canton participant node.
+---
+
+# canton_user (Resource)
+
+Manages a user on a Canton participant node. Both `user_id` and `primary_party` are immutable — changing either forces replacement.
+
+## Example Usage
+
+{{ tffile "examples/resources/canton_user/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Users can be imported by their user ID:
+
+```shell
+terraform import canton_user.treasury_service treasury-service
+```

@@ -5,6 +5,7 @@ package provider
 import (
 	"context"
 	"os"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -103,7 +104,7 @@ func (p *cantonProvider) Configure(ctx context.Context, req provider.ConfigureRe
 		return
 	}
 
-	participantURL := stringValueOrEnv(config.ParticipantURL, "CANTON_PARTICIPANT_URL")
+	participantURL := normalizeParticipantURL(stringValueOrEnv(config.ParticipantURL, "CANTON_PARTICIPANT_URL"))
 	if participantURL == "" {
 		resp.Diagnostics.AddError(
 			"Missing participant URL",
@@ -231,6 +232,15 @@ func (p *cantonProvider) DataSources(_ context.Context) []func() datasource.Data
 		NewUserDataSource,
 		NewPartiesDataSource,
 	}
+}
+
+// normalizeParticipantURL strips an http(s) scheme prefix and any trailing
+// slash so the result is a bare host:port suitable for gRPC dial.
+func normalizeParticipantURL(raw string) string {
+	u := strings.TrimPrefix(raw, "https://")
+	u = strings.TrimPrefix(u, "http://")
+	u = strings.TrimRight(u, "/")
+	return u
 }
 
 func stringValueOrEnv(value types.String, envVar string) string {

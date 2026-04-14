@@ -152,6 +152,31 @@ func TestProviderDataSources_ReturnsNonNilSlice(t *testing.T) {
 	}
 }
 
+func TestNormalizeParticipantURL(t *testing.T) {
+	tests := []struct {
+		name string
+		raw  string
+		want string
+	}{
+		{name: "https scheme", raw: "https://participant.example.com:443", want: "participant.example.com:443"},
+		{name: "http scheme", raw: "http://localhost:3901", want: "localhost:3901"},
+		{name: "no scheme", raw: "localhost:3901", want: "localhost:3901"},
+		{name: "https with trailing slash", raw: "https://host:443/", want: "host:443"},
+		{name: "bare host trailing slash", raw: "host:443/", want: "host:443"},
+		{name: "empty", raw: "", want: ""},
+		{name: "double scheme", raw: "https://https://double", want: "https://double"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := normalizeParticipantURL(tt.raw)
+			if got != tt.want {
+				t.Errorf("normalizeParticipantURL(%q) = %q, want %q", tt.raw, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestStringValueOrEnv(t *testing.T) {
 	tests := []struct {
 		name     string

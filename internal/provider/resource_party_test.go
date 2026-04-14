@@ -318,22 +318,69 @@ func TestPartyResource_Delete_NoOp(t *testing.T) {
 }
 
 func TestPartyResource_ImportState(t *testing.T) {
+	tests := []struct {
+		name      string
+		id        string
+		wantError bool
+		wantID    string
+		wantHint  string
+	}{
+		{
+			name:     "valid party ID",
+			id:       "treasury::12205d50b0e00850fb42bb3750f35cf4f9ffdb97827369d0bd1645386bd61bfb23da",
+			wantID:   "treasury::12205d50b0e00850fb42bb3750f35cf4f9ffdb97827369d0bd1645386bd61bfb23da",
+			wantHint: "treasury",
+		},
+		{
+			name:     "multiple separators takes first",
+			id:       "org::treasury::1220abcd",
+			wantID:   "org::treasury::1220abcd",
+			wantHint: "org",
+		},
+		{
+			name:      "no separator",
+			id:        "bare-id-no-separator",
+			wantError: true,
+		},
+		{
+			name:      "separator at start",
+			id:        "::1220abcd",
+			wantError: true,
+		},
+		{
+			name:      "empty string",
+			id:        "",
+			wantError: true,
+		},
+	}
+
 	r := &partyResource{}
 	s := getResourceSchema(r)
 
-	resp := &resource.ImportStateResponse{State: emptyState(s)}
-	r.ImportState(context.Background(), resource.ImportStateRequest{ID: "party::myparty::5678"}, resp)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			resp := &resource.ImportStateResponse{State: emptyState(s)}
+			r.ImportState(context.Background(), resource.ImportStateRequest{ID: tt.id}, resp)
 
-	if resp.Diagnostics.HasError() {
-		t.Fatalf("unexpected error: %s", resp.Diagnostics.Errors())
-	}
+			if tt.wantError {
+				if !resp.Diagnostics.HasError() {
+					t.Fatal("expected error, got none")
+				}
+				return
+			}
 
-	state := getState[partyResourceModel](t, resp.State)
+			if resp.Diagnostics.HasError() {
+				t.Fatalf("unexpected error: %s", resp.Diagnostics.Errors())
+			}
 
-	if state.PartyID.ValueString() != "party::myparty::5678" {
-		t.Errorf("expected party_id 'party::myparty::5678', got %q", state.PartyID.ValueString())
-	}
-	if state.PartyIDHint.ValueString() != "party::myparty::5678" {
-		t.Errorf("expected party_id_hint 'party::myparty::5678', got %q", state.PartyIDHint.ValueString())
+			state := getState[partyResourceModel](t, resp.State)
+
+			if state.PartyID.ValueString() != tt.wantID {
+				t.Errorf("expected party_id %q, got %q", tt.wantID, state.PartyID.ValueString())
+			}
+			if state.PartyIDHint.ValueString() != tt.wantHint {
+				t.Errorf("expected party_id_hint %q, got %q", tt.wantHint, state.PartyIDHint.ValueString())
+			}
+		})
 	}
 }

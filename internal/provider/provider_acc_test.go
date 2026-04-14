@@ -52,7 +52,7 @@ func testAccCantonClient() (*damlclient.DamlBindingClient, error) {
 		token = tok.AccessToken
 	}
 
-	client := damlclient.NewDamlClient(token, os.Getenv("CANTON_PARTICIPANT_URL"))
+	client := damlclient.NewDamlClient(token, normalizeParticipantURL(os.Getenv("CANTON_PARTICIPANT_URL")))
 	binding, err := client.Build(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("failed to build Canton client: %w", err)

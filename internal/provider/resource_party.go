@@ -5,6 +5,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -183,9 +184,23 @@ func (r *partyResource) Delete(ctx context.Context, _ resource.DeleteRequest, re
 }
 
 func (r *partyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// Set both party_id and party_id_hint from the import ID. The hint cannot be
-	// derived from the participant after allocation, so we use the full party ID
-	// as the hint value to keep state consistent and avoid forced replacement.
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("party_id"), req.ID)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("party_id_hint"), req.ID)...)
+	// Import ID must be the full party ID (e.g. "treasury::1220abcd...").
+	// Extract the hint (everything before "::") so state matches the config
+	// and doesn't force a replacement.
+	partyID := req.ID
+	idx := strings.Index(partyID, "::")
+	if idx <= 0 {
+		resp.Diagnostics.AddError(
+			"Invalid import ID",
+			fmt.Sprintf(
+				"Expected a full party ID in the format 'hint::fingerprint' (e.g. 'treasury::1220abcd...'), got %q",
+				partyID,
+			),
+		)
+		return
+	}
+	hint := partyID[:idx]
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("party_id"), partyID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("party_id_hint"), hint)...)
 }

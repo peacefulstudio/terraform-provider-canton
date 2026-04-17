@@ -28,6 +28,18 @@ jobs:
           fi
           echo "Tag ${TAG_SHA} is on prod — proceeding with release."
 
+      - name: Stage release notes
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          NOTES="release-notes/${TAG}.md"
+          if [ ! -f "$NOTES" ]; then
+            echo "::error::Release notes missing at $NOTES. Create release-notes/${TAG}.md before tagging (see release-notes/README.md)."
+            exit 1
+          fi
+          cp "$NOTES" .release-notes.md
+          echo "Using $NOTES as release body."
+
       - name: Setup Go
         uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:

@@ -1,7 +1,6 @@
 # terraform-provider-canton
 
 [![CI](https://github.com/peacefulstudio/terraform-provider-canton/actions/workflows/ci.yaml/badge.svg?branch=dev)](https://github.com/peacefulstudio/terraform-provider-canton/actions/workflows/ci.yaml)
-[![codecov](https://codecov.io/gh/peacefulstudio/terraform-provider-canton/branch/dev/graph/badge.svg)](https://codecov.io/gh/peacefulstudio/terraform-provider-canton)
 
 Terraform provider for Canton participant node administration — manage parties, users, and rights declaratively.
 

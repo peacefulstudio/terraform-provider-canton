@@ -38,14 +38,15 @@ signs:
 
 release:
   draft: true
+  # Curated per-version release notes live in release-notes/v<version>.md.
+  # The release workflow copies the matching file to .release-notes.md
+  # before GoReleaser runs.
+  header_file: .release-notes.md
   extra_files:
     - glob: "terraform-registry-manifest.json"
       name_template: "{{ .ProjectName }}_{{ .Version }}_manifest.json"
 
 changelog:
-  sort: asc
-  filters:
-    exclude:
-      - "^docs:"
-      - "^chore:"
-      - "^ci:"
+  # Auto-generated commit logs are noisy. We hand-curate notes in
+  # release-notes/v<version>.md instead.
+  disable: true

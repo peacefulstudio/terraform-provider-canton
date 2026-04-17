@@ -8,6 +8,7 @@
 # Build
 /bin/
 /terraform-provider-canton
+/.release-notes.md
 *.exe
 *.exe~
 *.dll

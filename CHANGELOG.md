@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] — 2026-04-17
+
+First stable release.
+
+### Added
+
+- **TLS connectivity through edge proxies** — the provider now dials TLS itself
+  via a `grpc.WithContextDialer` that tolerates proxies (Envoy Gateway, Qovery)
+  which don't echo `h2` back on ALPN. This is required to talk to Canton
+  participants exposed through most ingress setups since grpc-go started
+  enforcing ALPN in 1.67.
+- **Configure-time health check** — the provider now issues a `Ping`
+  (`VersionService.GetLedgerAPIVersion`) at configure time with a 10 s timeout,
+  so connectivity, TLS, and OAuth2 misconfigurations surface immediately
+  rather than on the first CRUD operation.
+- **OAuth2 token refresh** — bearer tokens are now attached per RPC from a
+  refreshing `oauth2.TokenSource`, so long-running `terraform apply` runs no
+  longer 401 when a short-lived token expires mid-apply.
+
+### Changed
+
+- **Scheme parsing is case-insensitive** and leading/trailing whitespace is
+  trimmed. `HTTPS://` and `https://` behave identically.
+- **Plaintext + OAuth2 emits a warning** — when `participant_url` is plaintext
+  but an OAuth2 token is configured, the provider now warns that the bearer
+  token will be transmitted unencrypted.
+
+### Fixed
+
+- **Non-h2 ALPN no longer silently succeeds** — if an upstream negotiates a
+  non-h2 ALPN (e.g. an HTTP/1.1 TLS proxy in front of the participant), the
+  dialer rejects the connection with a clear error instead of letting it fail
+  deep in the HTTP/2 framer on the first RPC.
+
 ## [0.1.0-rc.1] — 2026-04-14
 
 First preview release of `terraform-provider-canton` — a Terraform provider for
@@ -32,6 +66,7 @@ participant node via the Ledger API.
 - `participant_url` now accepts full URLs (`https://host:port`) — the provider strips the scheme and trailing slash before dialing gRPC ([#17])
 - `canton_party` import validates the `hint::fingerprint` format and returns a clear error instead of silently accepting malformed IDs ([#17])
 
-[Unreleased]: https://github.com/peacefulstudio/terraform-provider-canton/compare/v0.1.0-rc.1...HEAD
+[Unreleased]: https://github.com/peacefulstudio/terraform-provider-canton/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/peacefulstudio/terraform-provider-canton/compare/v0.1.0-rc.1...v0.1.0
 [0.1.0-rc.1]: https://github.com/peacefulstudio/terraform-provider-canton/commits/v0.1.0-rc.1
 [#17]: https://github.com/peacefulstudio/terraform-provider-canton/pull/17

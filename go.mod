@@ -7,7 +7,7 @@ require (
 	github.com/hashicorp/terraform-plugin-go v0.31.0
 	github.com/hashicorp/terraform-plugin-log v0.10.0
 	github.com/hashicorp/terraform-plugin-testing v1.16.0
-	github.com/noders-team/go-daml v0.6.6
+	github.com/noders-team/go-daml v0.6.7
 	golang.org/x/oauth2 v0.36.0
 	google.golang.org/grpc v1.80.0
 )

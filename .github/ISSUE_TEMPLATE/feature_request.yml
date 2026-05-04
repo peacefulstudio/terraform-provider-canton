@@ -1,0 +1,81 @@
+name: Feature request
+description: Propose a new resource, data source, attribute, or behaviour.
+title: "[feat] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing an enhancement. Please describe the problem the
+        feature solves before describing the solution — that helps us evaluate
+        alternatives and avoid over-fitting to a specific design.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do? What does the current provider make hard or impossible?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: |
+        Sketch the resource / data source / attribute you have in mind. HCL
+        examples are very welcome.
+      placeholder: |
+        ```hcl
+        resource "canton_new_thing" "example" {
+          # ...
+        }
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other designs you thought about, and why they're worse.
+    validations:
+      required: false
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Current workaround
+      description: How are you working around the missing feature today (if at all)?
+    validations:
+      required: false
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - New resource
+        - New data source
+        - New attribute on an existing resource
+        - Behaviour change on an existing resource
+        - Provider-level configuration
+        - Other
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Are you willing to contribute?
+      options:
+        - label: I'd be willing to open a PR for this.
+          required: false
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      options:
+        - label: I agree to follow this project's [Code of Conduct](https://github.com/peacefulstudio/terraform-provider-canton/blob/dev/CODE_OF_CONDUCT.md).
+          required: true

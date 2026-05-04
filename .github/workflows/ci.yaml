@@ -124,7 +124,9 @@ jobs:
       - name: Lint
         uses: golangci/golangci-lint-action@v9
         with:
-          version: latest
+          # Pin to a specific golangci-lint release so an upstream lint addition
+          # / breaking change can't fail this repo's CI without a deliberate bump.
+          version: v2.12.1
 
   check-vm:
     needs: build-and-test

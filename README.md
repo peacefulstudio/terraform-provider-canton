@@ -1,6 +1,7 @@
 # terraform-provider-canton
 
 [![CI](https://github.com/peacefulstudio/terraform-provider-canton/actions/workflows/ci.yaml/badge.svg?branch=dev)](https://github.com/peacefulstudio/terraform-provider-canton/actions/workflows/ci.yaml)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 Terraform provider for Canton participant node administration — manage parties, users, and rights declaratively.
 
@@ -127,12 +128,25 @@ go test ./...
 
 ## Contributing
 
-1. Create a feature branch from dev
-2. Make your changes
-3. Open a PR targeting dev
-4. Ensure CI checks pass
-5. Request review (or assign peaceful-bot for Claude Code review)
+Contributions are welcome from anyone in the Canton, Daml, and Terraform
+communities. See [CONTRIBUTING.md](CONTRIBUTING.md) for the dev setup, the
+red-green TDD requirement, the branch model, and the PR checklist. By
+participating you agree to abide by the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+For security-sensitive bugs, please follow [SECURITY.md](SECURITY.md) instead
+of opening a public issue.
+
+## Project stewardship
+
+`terraform-provider-canton` is currently developed and maintained by
+**Peaceful Studio OÜ** (Estonia, VAT EE102232996). The project is licensed
+under Apache-2.0 with the explicit intent of community ownership: if and when
+adoption warrants neutral governance, Peaceful Studio commits to transferring
+this repository to a community-led organisation under the same license terms.
+Contributions welcome from anywhere in the Canton, Daml, and HashiCorp
+ecosystems; no CLA required.
 
 ## License
 
-Copyright (c) 2026 Peaceful Studio OÜ. All rights reserved.
+Apache-2.0. © 2026 Peaceful Studio OÜ. See [LICENSE](LICENSE) and
+[NOTICE](NOTICE).

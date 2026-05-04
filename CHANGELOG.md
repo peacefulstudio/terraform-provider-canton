@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **License changed to Apache-2.0.** The project is now open source under the
+  Apache License, Version 2.0. Per-file copyright headers were updated from
+  "All rights reserved" to an `SPDX-License-Identifier: Apache-2.0` tag.
+
 ## [0.1.0] — 2026-04-17
 
 First stable release.

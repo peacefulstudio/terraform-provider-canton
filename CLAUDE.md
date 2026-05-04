@@ -101,19 +101,19 @@ All new features and bug fixes must follow red-green TDD:
 ### Running Tests
 
 ```bash
-go test ./...                                    # Run all tests
-go test -v -race -coverprofile=coverage.out ./...  # With race detection + coverage
-go tool cover -func=coverage.out                 # Coverage report by function
-go tool cover -html=coverage.out                 # HTML coverage report
+go test ./...                                              # Run all tests
+go test -v -race -coverprofile=coverage.out ./internal/... # With race detection + coverage (scope to ./internal/... — main.go has no tests by design)
+go tool cover -func=coverage.out                           # Coverage report by function
+go tool cover -html=coverage.out                           # HTML coverage report
 ```
 
 ### Acceptance Tests
 
-Acceptance tests run against a live Canton participant node and are gated behind `TF_ACC=1`. The participant used for testing is the same Docker instance that runs on the murmures integration test laptop.
+Acceptance tests run against a live Canton participant node and are gated behind `TF_ACC=1`. Internally, Peaceful Studio runs them against a shared LocalNet instance reachable via SSH tunnel from CI; for local development, point them at any reachable participant.
 
 ```bash
 export TF_ACC=1
-export CANTON_PARTICIPANT_URL="http://<murmures-laptop-ip>:<port>"
+export CANTON_PARTICIPANT_URL="http://<participant-host>:<port>"
 # If the participant requires OAuth2:
 # export CANTON_OAUTH2_TOKEN_URL=...
 # export CANTON_OAUTH2_CLIENT_ID=...
@@ -147,6 +147,10 @@ For local testing without GPG signing: `goreleaser release --snapshot --clean --
 ## Code Style
 
 - **Go 1.25** with latest language features
-- Copyright header: `// Copyright (c) 2026 Peaceful Studio OÜ. All rights reserved.`
+- Copyright header (two lines):
+  ```
+  // Copyright (c) 2026 Peaceful Studio OÜ
+  // SPDX-License-Identifier: Apache-2.0
+  ```
 - Follow Terraform Plugin Framework conventions
 - Use `tflog` for structured logging

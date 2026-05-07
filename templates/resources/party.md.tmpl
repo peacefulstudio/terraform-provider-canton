@@ -19,10 +19,25 @@ Allocates a party on a Canton participant node.
 
 ## Import
 
-Parties can be imported by their full party ID:
+Parties can be imported by their full party ID. The party ID is treated as an
+opaque string — the provider makes no assumption about its internal structure
+(hint, fingerprint, version segments, etc.), so any shape returned by the
+participant is accepted (Canton 0.6.2's longer, multi-segment IDs included):
 
 ```shell
-terraform import canton_party.validator "validator::1234567890"
+terraform import canton_party.validator "validator::12205d50b0e00850fb42bb3750f35cf4f9ffdb97827369d0bd1645386bd61bfb23da"
 ```
 
-After import, `party_id_hint` is set to the full party ID since the original hint cannot be recovered.
+After import, `party_id_hint` is set to the segment before the first `::`
+(the classical Canton hint position), or to the full party ID when there is
+no usable prefix (no `::`, or a leading `::`). Canton may normalize the hint
+during allocation, so the extracted prefix may not match the original config
+hint exactly — to avoid a `terraform plan` diff, **update `party_id_hint` in
+your config to match the imported value**.
+
+Be aware that `party_id_hint` is a force-replacement attribute: changing it
+in HCL after import (or at any other time) will cause Terraform to destroy
+this resource and allocate a brand-new party. The old party remains on the
+ledger — Canton parties cannot be deleted — but Terraform will no longer
+track it. Always reconcile the config to the imported hint, never the
+other way around.

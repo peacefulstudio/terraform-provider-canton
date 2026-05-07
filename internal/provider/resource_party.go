@@ -185,23 +185,30 @@ func (r *partyResource) Delete(ctx context.Context, _ resource.DeleteRequest, re
 }
 
 func (r *partyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// Import ID must be the full party ID (e.g. "treasury::1220abcd...").
-	// Extract the hint (everything before "::") so state matches the config
-	// and doesn't force a replacement.
 	partyID := req.ID
-	idx := strings.Index(partyID, "::")
-	if idx <= 0 {
+	if partyID == "" {
 		resp.Diagnostics.AddError(
 			"Invalid import ID",
-			fmt.Sprintf(
-				"Expected a full party ID in the format 'hint::fingerprint' (e.g. 'treasury::1220abcd...'), got %q",
-				partyID,
-			),
+			"Expected a non-empty party ID; got an empty string.",
 		)
 		return
 	}
-	hint := partyID[:idx]
+
+	hint := hintFromOpaquePartyID(ctx, partyID)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("party_id"), partyID)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("party_id_hint"), hint)...)
+}
+
+func hintFromOpaquePartyID(ctx context.Context, partyID string) string {
+	if idx := strings.Index(partyID, "::"); idx > 0 {
+		return partyID[:idx]
+	}
+	tflog.Debug(ctx, "Party ID has no usable '::' prefix; mirroring full ID into party_id_hint", map[string]interface{}{
+		"party_id": partyID,
+	})
+	return partyID
 }

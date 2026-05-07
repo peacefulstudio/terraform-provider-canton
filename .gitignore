@@ -9,6 +9,7 @@
 /bin/
 /terraform-provider-canton
 /.release-notes.md
+/.dev.tfrc
 *.exe
 *.exe~
 *.dll

@@ -56,9 +56,6 @@ func TestAccPartyResource_basic(t *testing.T) {
 					},
 				),
 			},
-			// ImportState — import the party by its allocated party_id.
-			// party_id_hint is still ignored because Canton may modify the hint
-			// during allocation, so the extracted prefix may not match exactly.
 			{
 				ResourceName:                         "canton_party.test",
 				ImportState:                          true,

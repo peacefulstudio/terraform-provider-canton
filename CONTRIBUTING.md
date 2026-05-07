@@ -82,6 +82,35 @@ go test -v ./internal/provider/ -run TestAcc
 If you don't have access to a Canton participant, that's fine — open the PR
 without running them and a maintainer will run them for you.
 
+### Testing local changes against a real Terraform config
+
+To exercise an in-progress build of the provider against your own Terraform
+config (e.g. an internal `terragrunt`/`terraform plan` against a real Canton
+participant), use Terraform's `dev_overrides` mechanism. It bypasses lockfiles,
+the user-scope plugin cache, and version constraints, so a fresh `go build` is
+always what runs — and Terraform prints a warning on every run so you can't
+accidentally ship a dev binary.
+
+```bash
+make install-dev
+# Copy the `export TF_CLI_CONFIG_FILE=...` line that make prints, paste it
+# into this shell, then run terraform / terragrunt as usual.
+terraform plan
+```
+
+`make install-dev` does two things: (1) `go build` the provider into the repo
+root, and (2) generate `.dev.tfrc` containing the absolute path. Re-run
+`make install-dev` after every code change. To deactivate, `unset
+TF_CLI_CONFIG_FILE` (or open a new shell); `make uninstall-dev` additionally
+deletes the generated `.dev.tfrc`.
+
+> **Why not the user-scope plugin mirror?** `~/.terraform.d/plugins/...` works
+> too, but Terraform happily reuses whatever's there *forever* — a pre-fix dev
+> binary in that directory will silently shadow a corrected Registry release
+> (this is exactly how the v0.1.0 URL-handling regression slipped through in
+> a real apply). `dev_overrides` makes the dev build explicit and warns you
+> on every invocation, which is the right default for an iteration loop.
+
 ## Code style
 
 - **Go 1.25** with the latest language features.

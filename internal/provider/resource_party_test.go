@@ -327,29 +327,49 @@ func TestPartyResource_ImportState(t *testing.T) {
 		wantHint  string
 	}{
 		{
-			name:     "valid party ID",
+			name:     "classic hint::fingerprint extracts prefix into hint",
 			id:       "treasury::12205d50b0e00850fb42bb3750f35cf4f9ffdb97827369d0bd1645386bd61bfb23da",
 			wantID:   "treasury::12205d50b0e00850fb42bb3750f35cf4f9ffdb97827369d0bd1645386bd61bfb23da",
 			wantHint: "treasury",
 		},
 		{
-			name:     "multiple separators takes first",
+			name:     "long-fingerprint hint::fingerprint extracts prefix into hint",
+			id:       "pong::12202f9db9518716585b91c380232bb8a25976988444837d964b786a8cc058bce074",
+			wantID:   "pong::12202f9db9518716585b91c380232bb8a25976988444837d964b786a8cc058bce074",
+			wantHint: "pong",
+		},
+		{
+			name:     "multi-segment Canton 0.6.2 party ID extracts prefix before first ::",
+			id:       "validator::namespace::12205d50b0e00850fb42bb3750f35cf4f9ffdb97827369d0bd1645386bd61bfb23da",
+			wantID:   "validator::namespace::12205d50b0e00850fb42bb3750f35cf4f9ffdb97827369d0bd1645386bd61bfb23da",
+			wantHint: "validator",
+		},
+		{
+			name:     "multiple :: separators take prefix before the first one",
 			id:       "org::treasury::1220abcd",
 			wantID:   "org::treasury::1220abcd",
 			wantHint: "org",
 		},
 		{
-			name:      "no separator",
-			id:        "bare-id-no-separator",
-			wantError: true,
+			name:     "trailing :: extracts prefix and accepts an empty fingerprint segment",
+			id:       "foo::",
+			wantID:   "foo::",
+			wantHint: "foo",
 		},
 		{
-			name:      "separator at start",
-			id:        "::1220abcd",
-			wantError: true,
+			name:     "party ID without :: mirrors the full ID into hint",
+			id:       "bare-id-no-separator",
+			wantID:   "bare-id-no-separator",
+			wantHint: "bare-id-no-separator",
 		},
 		{
-			name:      "empty string",
+			name:     "leading :: leaves idx == 0 so hint mirrors full ID",
+			id:       "::1220abcd",
+			wantID:   "::1220abcd",
+			wantHint: "::1220abcd",
+		},
+		{
+			name:      "empty string is rejected",
 			id:        "",
 			wantError: true,
 		},

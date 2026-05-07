@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`canton_party` import accepts any non-empty party ID.** Canton 0.6.2
+  widens the party ID shape past the classical `hint::fingerprint` pair
+  (extra segments may appear) and recommends treating party IDs as opaque,
+  so the importer no longer rejects IDs without a `::` separator or with a
+  leading `::`. The segment before the first `::` is still surfaced as
+  `party_id_hint` when present (preserving the classical convention); IDs
+  without a usable prefix mirror the full ID into the hint instead.
+
 ## [0.1.2] — 2026-05-07
 
 ### Fixed
@@ -101,7 +111,9 @@ participant node via the Ledger API.
 - `participant_url` now accepts full URLs (`https://host:port`) — the provider strips the scheme and trailing slash before dialing gRPC ([#17])
 - `canton_party` import validates the `hint::fingerprint` format and returns a clear error instead of silently accepting malformed IDs ([#17])
 
-[Unreleased]: https://github.com/peacefulstudio/terraform-provider-canton/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/peacefulstudio/terraform-provider-canton/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/peacefulstudio/terraform-provider-canton/compare/v0.1.1...v0.1.2
+[0.1.1]: https://github.com/peacefulstudio/terraform-provider-canton/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/peacefulstudio/terraform-provider-canton/compare/v0.1.0-rc.1...v0.1.0
 [0.1.0-rc.1]: https://github.com/peacefulstudio/terraform-provider-canton/commits/v0.1.0-rc.1
 [#17]: https://github.com/peacefulstudio/terraform-provider-canton/pull/17

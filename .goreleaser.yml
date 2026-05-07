@@ -42,9 +42,8 @@ signs:
 release:
   draft: true
   # Curated per-version release notes live in release-notes/v<version>.md.
-  # The release workflow copies the matching file to .release-notes.md
-  # before GoReleaser runs.
-  header_file: .release-notes.md
+  # The release workflow copies the matching file to .release-notes.md and
+  # passes it to GoReleaser via the --release-notes CLI flag.
   extra_files:
     - glob: "terraform-registry-manifest.json"
       name_template: "{{ .ProjectName }}_{{ .Version }}_manifest.json"

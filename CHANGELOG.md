@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-05-07
+
+### Fixed
+
+- **Terraform Registry compatibility** — `terraform-provider-canton_<version>_manifest.json`
+  is now included in `SHA256SUMS`. The Registry validates that every release
+  file is checksummed before accepting a version; v0.1.0 omitted the manifest
+  and could not be published. Pipeline-only change; provider behaviour is
+  unchanged from v0.1.0.
+
 ### Changed
 
 - **License changed to Apache-2.0.** The project is now open source under the

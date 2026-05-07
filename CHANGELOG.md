@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] — 2026-05-07
+
+### Fixed
+
+- **Registry-rendered documentation** — `docs/` is now committed to the source
+  tree, so the [Terraform Registry](https://registry.terraform.io/providers/peacefulstudio/canton/latest/docs)
+  renders provider, resource, and data-source reference pages instead of
+  *"Documentation Unavailable"*. Previously only `templates/` and `examples/`
+  shipped; the Registry reads the rendered `docs/` directory directly, not the
+  templates. Docs-only change; provider behaviour is unchanged from v0.1.1.
+
+### Changed
+
+- **`templates/` filenames stripped of `canton_` prefix.** The
+  `tfplugindocs` generator strips the provider name when matching templates to
+  schema entries, so `templates/resources/canton_party.md.tmpl` was orphaned
+  and is now `party.md.tmpl`. Same for the other resource and data-source
+  templates.
+
 ## [0.1.1] — 2026-05-07
 
 ### Fixed

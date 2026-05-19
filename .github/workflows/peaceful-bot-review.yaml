@@ -1,0 +1,29 @@
+# Peaceful-bot PR-readiness reviewer. Verifies a PR has no unresolved threads,
+# no dangling review comments, all required checks green, and no PENDING /
+# CHANGES_REQUESTED reviews. On pass: posts an APPROVE review. On fail:
+# upserts a single sticky comment listing what's still blocking.
+#
+# Identity is the Peaceful Studio bot App (vars.BOT_APP_ID +
+# secrets.BOT_APP_PRIVATE_KEY) — the reusable workflow mints a short-lived
+# installation token. The default GITHUB_TOKEN cannot approve PRs it would
+# also be the author of, so an App token is required for the APPROVE step.
+name: Peaceful Bot Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  pull_request_review:
+    types: [submitted]
+  pull_request_review_comment:
+    types: [created]
+  issue_comment:
+    types: [created]
+  check_suite:
+    types: [completed]
+
+jobs:
+  review:
+    # issue_comment fires for both issues and PRs; gate on pull_request presence.
+    if: github.event_name != 'issue_comment' || github.event.issue.pull_request != null
+    uses: peacefulstudio/github-actions/.github/workflows/peaceful-bot-review.yaml@v1
+    secrets: inherit

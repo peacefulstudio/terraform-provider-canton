@@ -3,6 +3,12 @@ name: CI
 on:
   push:
     branches: [dev]
+    paths:
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
+      - '.golangci.yml'
+      - '.github/workflows/ci.yaml'
   pull_request:
     branches: [dev]
   workflow_dispatch:
@@ -12,14 +18,18 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   go-ci:
     uses: peacefulstudio/github-actions/.github/workflows/go-ci.yaml@v1
     with:
       go-version: '1.25.8'
-      module-paths: '.'
+      module-paths: .
       test-packages: './internal/...'
-      golangci-lint-version: 'v2.12.1'
+      golangci-lint-version: v2.12.2
 
   check-vm:
     needs: go-ci
@@ -103,7 +113,6 @@ jobs:
             -i ~/.ssh/localnet_key \
             ubuntu@"$LOCALNET_HOST"
 
-          # Verify tunnel is working — poll the Keycloak OIDC endpoint
           for i in $(seq 1 10); do
             if curl -sf http://localhost:8082/realms/AppProvider/.well-known/openid-configuration > /dev/null 2>&1; then
               echo "LocalNet is reachable via tunnel"

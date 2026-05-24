@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] — 2026-05-24
+
 ### Fixed
 
 - **`canton_party` import accepts any non-empty party ID.** Canton 0.6.2
@@ -16,6 +18,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   leading `::`. The segment before the first `::` is still surfaced as
   `party_id_hint` when present (preserving the classical convention); IDs
   without a usable prefix mirror the full ID into the hint instead.
+
+### Changed
+
+- **Source repository moved to
+  [peacefulstudio/terraform-provider-canton](https://github.com/peacefulstudio/terraform-provider-canton)**
+  (public, Apache-2.0). Prior versions were built from a now-private
+  mirror; v0.1.3 is the first release cut from the public repo. The
+  published provider on the Terraform Registry (`peacefulstudio/canton`)
+  is unchanged and continues to be signed with the same release signing
+  key (fingerprint `8687CAE1AD1207BBD51C4439E480E040DEB29BC2`).
+
+### Documentation
+
+- **`party_id_hint` is force-replacement.** The `canton_party.party_id_hint`
+  description in v0.1.2 said *"changing it post-allocation has no ledger
+  effect"*, implying the field was freely editable. It isn't — the schema
+  marks it `RequiresReplace()`, so changing the hint forces destroy/create
+  and allocates a brand-new party. The reference page now says so explicitly
+  and tells users to reconcile their config to the imported hint after
+  `terraform import`, never the other way around.
 
 ## [0.1.2] — 2026-05-07
 
@@ -111,7 +133,8 @@ participant node via the Ledger API.
 - `participant_url` now accepts full URLs (`https://host:port`) — the provider strips the scheme and trailing slash before dialing gRPC ([#17])
 - `canton_party` import validates the `hint::fingerprint` format and returns a clear error instead of silently accepting malformed IDs ([#17])
 
-[Unreleased]: https://github.com/peacefulstudio/terraform-provider-canton/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/peacefulstudio/terraform-provider-canton/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/peacefulstudio/terraform-provider-canton/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/peacefulstudio/terraform-provider-canton/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/peacefulstudio/terraform-provider-canton/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/peacefulstudio/terraform-provider-canton/compare/v0.1.0-rc.1...v0.1.0
